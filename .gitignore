@@ -7,6 +7,9 @@ coverage/
 # Build output
 dist/
 
+# Prisma generated files
+src/generated/prisma
+
 
 # Log files
 *.log
