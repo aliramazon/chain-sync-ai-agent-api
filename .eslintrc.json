@@ -1,0 +1,49 @@
+{
+    "parser": "@typescript-eslint/parser",
+    "env": {
+        "es2020": true,
+        "node": true
+    },
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:prettier/recommended"
+    ],
+    "plugins": ["@typescript-eslint", "import", "prettier"],
+    "parserOptions": {
+        "ecmaVersion": 2020,
+        "sourceType": "module",
+        "project": "./tsconfig.eslint.json"
+    },
+    "settings": {
+        "import/parsers": {
+            "@typescript-eslint/parser": [".ts"]
+        },
+        "import/resolver": {
+            "typescript": {
+                "alwaysTryTypes": true
+            }
+        }
+    },
+    "rules": {
+        "no-console": "warn",
+        "eqeqeq": ["error", "always"],
+        "prettier/prettier": [
+            "error",
+            { "printWidth": 80, "endOfLine": "auto" }
+        ],
+        "@typescript-eslint/naming-convention": [
+            "error",
+            {
+                "selector": "variable",
+                "format": ["camelCase", "UPPER_CASE"]
+            }
+        ],
+        "@typescript-eslint/consistent-type-imports": "error",
+        "@typescript-eslint/no-unused-vars": [
+            "warn",
+            { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
+        ]
+    },
+    "ignorePatterns": ["dist", "node_modules"]
+}
