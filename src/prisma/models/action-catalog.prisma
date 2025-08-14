@@ -1,0 +1,20 @@
+enum ActionType {
+    trigger
+    action
+}
+
+model ActionCatalog {
+    id           String     @id @default(cuid())
+    connectorId  String
+    type         ActionType
+    key          String     @unique
+    title        String
+    description  String
+    schemaInput  Json?
+    schemaOutput Json?
+    examples     Json
+    createdAt    DateTime   @default(now())
+    updatedAt    DateTime   @updatedAt
+
+    connector Connector @relation(fields: [connectorId], references: [id])
+}
