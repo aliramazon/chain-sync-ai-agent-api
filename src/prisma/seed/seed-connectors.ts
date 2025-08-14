@@ -1,4 +1,4 @@
-import { prisma } from './index'; // reuse the same instance
+import { prisma } from '../index';
 
 async function main() {
     const connectors = [
