@@ -6,6 +6,7 @@ export const shopifyOrderPaidOutput = z.object({
     orderId: z.string().min(1, 'Order ID is required'),
     total: z.number().positive('Total amount must be positive'),
     currency: z.string().length(3, 'Currency must be a 3-letter ISO code'),
+    paymentIntentId: z.string().optional(),
     items: z.array(
         z.object({
             sku: z.string(),
@@ -17,7 +18,7 @@ export const shopifyOrderPaidOutput = z.object({
     customer: z.object({
         id: z.string(),
         name: z.string(),
-        email: z.string().email(),
+        email: z.email(),
     }),
     shippingAddress: z.string().min(5),
 });
@@ -26,6 +27,7 @@ export const shopifyOrderPaidOutputExample = {
     orderId: 'ORDER-84322',
     total: 2450,
     currency: 'USD',
+    paymentIntentId: 'pi_3QF1abcXYZ123456789',
     items: [
         {
             sku: 'OAK-DT-001',
