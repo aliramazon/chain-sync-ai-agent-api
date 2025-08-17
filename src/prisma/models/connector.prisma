@@ -15,4 +15,5 @@ model Connector {
     createdAt      DateTime        @default(now())
 
     actionCatalogs ActionCatalog[]
+    WorkflowStep   WorkflowStep[]
 }

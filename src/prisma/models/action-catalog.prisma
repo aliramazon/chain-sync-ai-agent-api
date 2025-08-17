@@ -16,5 +16,6 @@ model ActionCatalog {
     createdAt    DateTime   @default(now())
     updatedAt    DateTime   @updatedAt
 
-    connector Connector @relation(fields: [connectorId], references: [id])
+    connector    Connector      @relation(fields: [connectorId], references: [id])
+    WorkflowStep WorkflowStep[]
 }

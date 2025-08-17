@@ -1,0 +1,28 @@
+model Workflow {
+    id          String   @id @default(cuid())
+    name        String
+    description String?
+    isActive    Boolean  @default(false)
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    steps WorkflowStep[]
+}
+
+model WorkflowStep {
+    id            String   @id @default(cuid())
+    workflowId    String
+    actionId      String
+    connectorId   String
+    stepOrder     Int
+    externalId    String? // LLM Response
+    configuration Json
+    createdAt     DateTime @default(now())
+    updatedAt     DateTime @updatedAt
+
+    workflow  Workflow      @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+    action    ActionCatalog @relation(fields: [actionId], references: [id])
+    connector Connector     @relation(fields: [connectorId], references: [id])
+
+    @@unique([workflowId, stepOrder])
+}
