@@ -51,17 +51,17 @@ export const getWorkflowPlanFromLLM = async (prompt: string) => {
 
         Response JSON shape:
         {
-        "workflowName": "string",
-        "description": "string", 
-        "steps": [
-            {
-            "stepId": "string",
-            "type": "trigger|action",
-            "actionKey": "string",
-            "description": "string",
-            "dependsOn": ["string", "..."]
-            }
-        ]
+            "workflowName": "string",
+            "description": "string", 
+            "steps": [
+                {
+                "stepId": "step_1",        // ← Always use step_1, step_2, step_3 format
+                "type": "trigger|action",
+                "actionKey": "string",
+                "description": "string",
+                "dependsOn": ["step_1", "step_2"]  // ← Must reference stepId format
+                }
+            ]
         }`;
 
     const claudeResponse =
@@ -191,6 +191,13 @@ const createFromLLMResponse = async (prompt: string) => {
     });
 };
 
+const getAll = async () => {
+    const workflows = await prisma.workflow.findMany();
+
+    return workflows;
+};
+
 export const workflowService = {
     createFromLLMResponse,
+    getAll,
 };

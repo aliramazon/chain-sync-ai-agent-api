@@ -1,12 +1,18 @@
 import { workflowService } from '../services/workflow.service';
 import { catchAsync } from '../utils/catch-async';
 
-export const createWorkflowFromPrompt = catchAsync(async (req, res) => {
+const createWorkflowFromPrompt = catchAsync(async (req, res) => {
     const { prompt } = req.body;
     const result = await workflowService.createFromLLMResponse(prompt);
     res.json(result);
 });
 
+const getAll = catchAsync(async (_, res) => {
+    const result = await workflowService.getAll();
+    res.json(result);
+});
+
 export const workflowController = {
     createWorkflowFromPrompt,
+    getAll,
 };
