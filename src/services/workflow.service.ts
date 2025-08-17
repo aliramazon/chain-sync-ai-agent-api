@@ -14,7 +14,7 @@ interface ClaudeWorkflowResponse {
     }>;
 }
 
-export const createWorkflowFromPrompt = async (prompt: string) => {
+export const getWorkflowPlanFromLLM = async (prompt: string) => {
     const availableActions = await prisma.actionCatalog.findMany({
         select: {
             id: true,
@@ -100,11 +100,97 @@ export const createWorkflowFromPrompt = async (prompt: string) => {
         );
     }
 
-    return {
-        workflow: claudeResponse,
-    };
+    return claudeResponse;
+};
+
+const createFromLLMResponse = async (prompt: string) => {
+    // 1. Get LLM workflow plan
+    const claudeResponse = await getWorkflowPlanFromLLM(prompt);
+
+    // 2. Get available actions for saving
+    const availableActions = await prisma.actionCatalog.findMany({
+        select: {
+            id: true,
+            connectorId: true,
+            key: true,
+            title: true,
+            connector: {
+                select: {
+                    name: true,
+                },
+            },
+        },
+    });
+
+    // 3. Save to database and return full workflow
+    return await prisma.$transaction(async (tx) => {
+        // Create main Workflow record
+        const workflow = await tx.workflow.create({
+            data: {
+                name: claudeResponse.workflowName,
+                description: claudeResponse.description,
+                isActive: false,
+            },
+        });
+
+        // Create WorkflowStep records
+        const createdSteps = [];
+        for (let i = 0; i < claudeResponse.steps.length; i++) {
+            const step = claudeResponse.steps[i];
+
+            const action = availableActions.find(
+                (a) => a.key === step.actionKey,
+            );
+            if (!action) {
+                throw CustomError.notFound(
+                    `Action not found: ${step.actionKey}`,
+                );
+            }
+
+            const workflowStep = await tx.workflowStep.create({
+                data: {
+                    workflowId: workflow.id,
+                    actionId: action.id,
+                    connectorId: action.connectorId,
+                    stepOrder: i + 1,
+                    externalId: step.stepId,
+                    configuration: {
+                        dependencies: step.dependsOn || [],
+                        position: {
+                            x: i * 250 + 100,
+                            y: 100,
+                        },
+                        description: step.description,
+                    },
+                },
+            });
+
+            createdSteps.push({
+                id: workflowStep.id,
+                stepId: step.stepId,
+                type: step.type,
+                actionKey: step.actionKey,
+                title: action.title,
+                description: step.description,
+                connector: action.connector.name,
+                position: { x: i * 250 + 100, y: 100 },
+                dependsOn: step.dependsOn || [],
+            });
+        }
+
+        return {
+            workflow: {
+                id: workflow.id,
+                name: workflow.name,
+                description: workflow.description,
+                isActive: workflow.isActive,
+                stepCount: claudeResponse.steps.length,
+            },
+            steps: createdSteps,
+        };
+    });
 };
 
 export const workflowService = {
-    createWorkflowFromPrompt,
+    createFromLLMResponse,
 };
