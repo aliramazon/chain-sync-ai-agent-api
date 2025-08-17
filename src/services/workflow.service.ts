@@ -197,7 +197,28 @@ const getAll = async () => {
     return workflows;
 };
 
+const deleteOne = async (id: string) => {
+    const workflow = await prisma.workflow.findUnique({
+        where: { id },
+        select: { id: true, isActive: true, name: true },
+    });
+
+    if (!workflow) {
+        throw CustomError.notFound('Workflow not found');
+    }
+
+    if (workflow.isActive) {
+        throw CustomError.validation(
+            'Cannot delete active workflow. Deactivate first.',
+            'WORKFLOW_ACTIVE',
+        );
+    }
+
+    await prisma.workflow.delete({ where: { id } });
+};
+
 export const workflowService = {
     createFromLLMResponse,
     getAll,
+    deleteOne,
 };
