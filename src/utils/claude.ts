@@ -1,58 +1,95 @@
-import Anthropic from '@anthropic-ai/sdk';
+import Anthropic, { APIError } from '@anthropic-ai/sdk';
 
-interface ClaudeOptions {
+export interface ClaudeOptions<T = unknown> {
     model?: string;
     maxTokens?: number;
     temperature?: number;
+    system?: string;
+    signal?: AbortSignal;
 }
 
 export class Claude {
-    private static client: Anthropic;
+    private static client: Anthropic | null = null;
 
     private static getClient(): Anthropic {
-        if (!this.client) {
-            this.client = new Anthropic({
-                apiKey: process.env.ANTHROPIC_API_KEY!,
-            });
-        }
+        const key = process.env.ANTHROPIC_API_KEY;
+        if (!key) throw new Error('ANTHROPIC_API_KEY is not set');
+        if (!this.client) this.client = new Anthropic({ apiKey: key });
         return this.client;
     }
 
-    static async ask(
+    static async ask<T = unknown>(
         prompt: string,
-        options: ClaudeOptions = {},
-    ): Promise<any> {
+        options: ClaudeOptions<T> = {},
+    ): Promise<T> {
         const {
-            model = 'claude-3-5-sonnet-20241022',
+            model = 'claude-sonnet-4-20250514',
             maxTokens = 4000,
             temperature = 0.1,
+            system,
+            signal,
         } = options;
 
-        try {
-            const response = await this.getClient().messages.create({
-                model,
-                max_tokens: maxTokens,
-                temperature,
-                messages: [{ role: 'user', content: prompt }],
-            });
+        const client = this.getClient();
 
-            const content = response.content[0];
-            if (content.type !== 'text') {
-                throw new Error('Invalid response type');
-            }
+        const attempt = async (tryNo: number): Promise<T> => {
+            try {
+                const resp = await client.messages.create(
+                    {
+                        model,
+                        max_tokens: maxTokens,
+                        temperature,
+                        system,
+                        messages: [{ role: 'user', content: prompt }],
+                    },
+                    { signal },
+                );
 
-            // Extract and parse JSON
-            const jsonMatch = content.text.match(/\{[\s\S]*\}/);
-            if (!jsonMatch) {
-                throw new Error('No JSON found in response');
-            }
+                const text = resp.content
+                    .filter(
+                        (b): b is Anthropic.Messages.TextBlock =>
+                            b.type === 'text',
+                    )
+                    .map((b) => b.text)
+                    .join('\n')
+                    .trim();
 
-            return JSON.parse(jsonMatch[0]);
-        } catch (error) {
-            if (error instanceof Anthropic.APIError) {
-                throw new Error(`Claude API failed: ${error.message}`);
+                if (!text) throw new Error('No text content in response');
+
+                try {
+                    return JSON.parse(text) as T;
+                } catch {}
+
+                const m1 = text.match(/```json\s*([\s\S]*?)```/i);
+                if (m1) return JSON.parse(m1[1]) as T;
+
+                const m2 = text.match(/```([\s\S]*?)```/);
+                if (m2) return JSON.parse(m2[1]) as T;
+
+                const m3 = text.match(/\{[\s\S]*\}/);
+                if (m3) return JSON.parse(m3[0]) as T;
+
+                throw new Error('Failed to locate JSON in response text');
+            } catch (err) {
+                if (err instanceof APIError) {
+                    const status = err.status ?? 0;
+                    const transient =
+                        status === 429 || (status >= 500 && status < 600);
+                    if (transient && tryNo < 3) {
+                        await new Promise((r) =>
+                            setTimeout(r, 250 * 2 ** tryNo),
+                        );
+                        return attempt(tryNo + 1);
+                    }
+                    throw new Error(
+                        `Claude API failed (${status}): ${err.message}`,
+                    );
+                }
+                if ((err as any).name === 'AbortError') throw err;
+                throw err;
             }
-            throw error;
-        }
+        };
+
+        return attempt(0);
     }
 }

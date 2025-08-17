@@ -3,6 +3,7 @@ import 'dotenv/config';
 import express from 'express';
 import { GlobalError } from './middlewares/global-error.middleware';
 import { connectorRouter } from './routes/connector.route';
+import { workflowRouter } from './routes/workflow.route';
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.get('/health', (_req, res) => {
 const PORT = process.env.PORT || 3000;
 
 app.use('/api/connectors', connectorRouter);
+app.use('/api/workflows', workflowRouter);
 app.use(GlobalError.handle);
 
 app.listen(PORT, () => {
