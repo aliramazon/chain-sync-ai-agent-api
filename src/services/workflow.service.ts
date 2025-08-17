@@ -217,8 +217,36 @@ const deleteOne = async (id: string) => {
     await prisma.workflow.delete({ where: { id } });
 };
 
+const getOne = async (id: string) => {
+    const result = await prisma.workflow.findUnique({
+        where: { id },
+        select: {
+            id: true,
+            name: true,
+            description: true,
+            isActive: true,
+            steps: {
+                select: {
+                    id: true,
+                    externalId: true,
+                    stepOrder: true,
+                    action: {
+                        select: {
+                            key: true,
+                            title: true,
+                            type: true,
+                        },
+                    },
+                },
+            },
+        },
+    });
+    return result;
+};
+
 export const workflowService = {
     createFromLLMResponse,
     getAll,
     deleteOne,
+    getOne,
 };

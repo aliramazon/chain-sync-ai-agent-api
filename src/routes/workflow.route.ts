@@ -6,5 +6,6 @@ const workflowRouter = Router();
 workflowRouter.post('/', workflowController.createWorkflowFromPrompt);
 workflowRouter.get('/', workflowController.getAll);
 workflowRouter.delete('/:id', workflowController.deleteOne);
+workflowRouter.get('/:id', workflowController.getOne);
 
 export { workflowRouter };

@@ -18,8 +18,16 @@ export const deleteOne = catchAsync(async (req, res) => {
     res.json(204);
 });
 
+export const getOne = catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const result = await workflowService.getOne(id);
+
+    res.json(result);
+});
+
 export const workflowController = {
     createWorkflowFromPrompt,
     getAll,
     deleteOne,
+    getOne,
 };
