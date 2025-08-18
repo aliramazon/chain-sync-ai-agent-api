@@ -177,9 +177,10 @@ const createFromLLMResponse = async (prompt: string) => {
                 name: workflow.name,
                 description: workflow.description,
                 isActive: workflow.isActive,
-                stepCount: claudeResponse.steps.length,
+                createdAt: workflow.createdAt,
+                _count: { steps: claudeResponse.steps.length },
+                steps: createdSteps,
             },
-            steps: createdSteps,
         };
     });
 };
