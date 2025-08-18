@@ -40,29 +40,44 @@ export const getWorkflowPlanFromLLM = async (prompt: string) => {
         throw CustomError.notFound('No actions found in the system');
     }
 
-    const plannerPrompt = `You are a workflow planner.
+    const plannerPrompt = `You are a strict workflow planner. You MUST follow these rules exactly:
 
-        Select actions from these available options:
-        ${JSON.stringify(availableActions)}
+        CRITICAL RULES:
+        1. You can ONLY use actions from the provided list below
+        2. You MUST NOT create workflows if the required actions/services are NOT in the available list
+        3. If the user mentions services, APIs, or tools NOT in the available list, respond with an error
+        4. Every action MUST have a valid "actionKey" that exists in the available actions
+        5. Return ONLY valid JSON - no explanations, no additional text
 
-        Task: ${prompt}
+        AVAILABLE ACTIONS (you can ONLY use these):
+        ${JSON.stringify(availableActions, null, 2)}
 
-        Return ONLY a single JSON object IN RESPONSE.
+        USER REQUEST: ${prompt}
 
-        Response JSON shape:
+        VALIDATION REQUIREMENTS:
+        - Check if all mentioned services/tools exist in the available actions
+        - If ANY required service is missing, return this error format:
         {
-            "workflowName": "string",
-            "description": "string", 
+        "error": "Cannot create workflow. Missing required services: [list missing services]",
+        "availableServices": [list of available service names from actionKey]
+        }
+
+        If all required actions are available, return this exact JSON format:
+        {
+            "workflowName": "string (descriptive name)",
+            "description": "string (what this workflow does)",
             "steps": [
                 {
-                "stepId": "step_1",        // ← Always use step_1, step_2, step_3 format
-                "type": "trigger|action",
-                "actionKey": "string",
-                "description": "string",
-                "dependsOn": ["step_1", "step_2"]  // ← Must reference stepId format
+                    "stepId": "step_1",
+                    "type": "trigger|action", 
+                    "actionKey": "EXACT_KEY_FROM_AVAILABLE_ACTIONS",
+                    "description": "string (what this step does)",
+                    "dependsOn": ["previous_step_ids"] // empty array [] for first step
                 }
             ]
-        }`;
+        }
+
+        RETURN ONLY THE JSON OBJECT - NO OTHER TEXT.`;
 
     const claudeResponse =
         await Claude.ask<ClaudeWorkflowResponse>(plannerPrompt);
