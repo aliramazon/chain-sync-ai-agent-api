@@ -1,13 +1,11 @@
-import Ajv from 'ajv';
 import { z } from 'zod';
 import { prisma } from '../../../prisma';
+import { ajv } from '../../../utils/ajv';
 import { Actions } from '../../actions';
 import {
     shopifyFulfillOrderInput,
     shopifyFulfillOrderOutput,
 } from '../schemas/fulfill-order.schema';
-
-const ajv = new Ajv({ allErrors: true });
 
 type ShopifyFulfillOrderInput = z.infer<typeof shopifyFulfillOrderInput>;
 type ShopifyFulfillOrderOutput = z.infer<typeof shopifyFulfillOrderOutput>;

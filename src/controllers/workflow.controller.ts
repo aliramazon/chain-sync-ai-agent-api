@@ -33,10 +33,20 @@ export const changeStatus = catchAsync(async (req, res) => {
     res.json(result);
 });
 
+export const runWithSyntheticData = catchAsync(async (req, res) => {
+    const { id } = req.params;
+    await workflowService.runWithSyntheticData(id);
+
+    res.json({
+        message: 'Workflow successfully run with synthetic data',
+    });
+});
+
 export const workflowController = {
     createWorkflowFromPrompt,
     getAll,
     deleteOne,
     getOne,
     changeStatus,
+    runWithSyntheticData,
 };

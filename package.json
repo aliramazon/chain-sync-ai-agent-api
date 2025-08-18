@@ -19,6 +19,8 @@
         "@anthropic-ai/sdk": "^0.60.0",
         "@prisma/client": "^6.14.0",
         "@prisma/extension-accelerate": "^2.0.2",
+        "ajv": "^8.17.1",
+        "ajv-formats": "^3.0.1",
         "cors": "^2.8.5",
         "dotenv": "^17.2.1",
         "express": "^5.1.0",

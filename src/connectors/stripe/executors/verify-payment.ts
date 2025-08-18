@@ -1,13 +1,11 @@
-import Ajv from 'ajv';
 import { z } from 'zod';
 import { prisma } from '../../../prisma';
+import { ajv } from '../../../utils/ajv';
 import { Actions } from '../../actions';
 import {
     stripeVerifyPaymentInput,
     stripeVerifyPaymentOutput,
 } from '../schemas/verify-payment.schema';
-
-const ajv = new Ajv({ allErrors: true });
 
 type StripeVerifyPaymentInput = z.infer<typeof stripeVerifyPaymentInput>;
 type StripeVerifyPaymentOutput = z.infer<typeof stripeVerifyPaymentOutput>;

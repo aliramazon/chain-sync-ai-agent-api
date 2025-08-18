@@ -1,13 +1,11 @@
-import Ajv from 'ajv';
 import { z } from 'zod';
 import { prisma } from '../../../prisma';
+import { ajv } from '../../../utils/ajv';
 import { Actions } from '../../actions';
 import {
     netsuiteCreateSalesOrderInput,
     netsuiteCreateSalesOrderOutput,
 } from '../schemas/create-sales-order.schema';
-
-const ajv = new Ajv({ allErrors: true });
 
 type NetSuiteCreateSalesOrderInput = z.infer<
     typeof netsuiteCreateSalesOrderInput

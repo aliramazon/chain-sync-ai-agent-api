@@ -1,13 +1,11 @@
-import Ajv from 'ajv';
 import { z } from 'zod';
 import { prisma } from '../../../prisma';
+import { ajv } from '../../../utils/ajv';
 import { Actions } from '../../actions';
 import {
     shippoCreateShipmentInput,
     shippoCreateShipmentOutput,
 } from '../schemas/create-shipment.schema';
-
-const ajv = new Ajv({ allErrors: true });
 
 type ShippoCreateShipmentInput = z.infer<typeof shippoCreateShipmentInput>;
 type ShippoCreateShipmentOutput = z.infer<typeof shippoCreateShipmentOutput>;

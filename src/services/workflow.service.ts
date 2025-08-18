@@ -1,3 +1,5 @@
+import { Actions } from '../connectors/actions';
+import { executorsMap } from '../connectors/executors-map';
 import { prisma } from '../prisma';
 import { Claude } from '../utils/claude';
 import { CustomError } from '../utils/custom-error';
@@ -308,10 +310,43 @@ const changeStatus = async (id: string, status: 'activate' | 'deactivate') => {
     };
 };
 
+const runWithSyntheticData = async (id: string) => {
+    const workflow = await prisma.workflow.findUnique({
+        where: {
+            id,
+        },
+        include: {
+            steps: {
+                orderBy: {
+                    stepOrder: 'asc',
+                },
+                include: {
+                    action: true,
+                },
+            },
+        },
+    });
+
+    if (!workflow?.steps) {
+        throw CustomError.notFound('Workflow does not have steps');
+    }
+
+    for (const step of workflow.steps) {
+        const actionKey = step.action.key as Actions;
+
+        if (step.action.type === 'action' && executorsMap[actionKey]) {
+            const { executor, input } = executorsMap[actionKey];
+
+            await executor(input);
+        }
+    }
+};
+
 export const workflowService = {
     createFromLLMResponse,
     getAll,
     deleteOne,
     getOne,
     changeStatus,
+    runWithSyntheticData,
 };
