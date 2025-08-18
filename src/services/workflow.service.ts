@@ -269,9 +269,33 @@ const getOne = async (id: string) => {
     return result;
 };
 
+const changeStatus = async (id: string, status: 'activate' | 'deactivate') => {
+    const workflow = await prisma.workflow.findUnique({
+        where: { id },
+        select: { id: true, isActive: true, name: true },
+    });
+
+    if (!workflow) {
+        throw CustomError.notFound('Workflow not found');
+    }
+
+    const newStatus = status === 'activate';
+
+    await prisma.workflow.update({
+        where: { id },
+        data: { isActive: newStatus },
+    });
+
+    return {
+        id: workflow.id,
+        isActive: newStatus,
+    };
+};
+
 export const workflowService = {
     createFromLLMResponse,
     getAll,
     deleteOne,
     getOne,
+    changeStatus,
 };

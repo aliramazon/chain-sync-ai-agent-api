@@ -25,9 +25,18 @@ export const getOne = catchAsync(async (req, res) => {
     res.json(result);
 });
 
+export const changeStatus = catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+    const result = await workflowService.changeStatus(id, status);
+
+    res.json(result);
+});
+
 export const workflowController = {
     createWorkflowFromPrompt,
     getAll,
     deleteOne,
     getOne,
+    changeStatus,
 };

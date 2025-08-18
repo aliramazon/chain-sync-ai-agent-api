@@ -7,5 +7,6 @@ workflowRouter.post('/', workflowController.createWorkflowFromPrompt);
 workflowRouter.get('/', workflowController.getAll);
 workflowRouter.delete('/:id', workflowController.deleteOne);
 workflowRouter.get('/:id', workflowController.getOne);
+workflowRouter.patch('/:id/change-status', workflowController.changeStatus);
 
 export { workflowRouter };
