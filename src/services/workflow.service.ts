@@ -156,10 +156,9 @@ const createFromLLMResponse = async (prompt: string) => {
                     stepOrder: i + 1,
                     externalId: step.stepId,
                     dependsOn: step.dependsOn || [],
-                    description: step.description,
+                    description: step.description || '',
                 },
             });
-
             createdSteps.push({
                 id: workflowStep.id,
                 stepId: step.stepId,

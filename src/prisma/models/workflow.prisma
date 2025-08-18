@@ -16,8 +16,8 @@ model WorkflowStep {
     connectorId String
     stepOrder   Int
     externalId  String
-    description String?
-    dependsOn   Json?
+    description String
+    dependsOn   Json
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt
 
