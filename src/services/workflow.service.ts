@@ -114,6 +114,7 @@ const createFromLLMResponse = async (prompt: string) => {
             connectorId: true,
             key: true,
             title: true,
+            type: true,
             connector: {
                 select: {
                     name: true,
@@ -154,26 +155,19 @@ const createFromLLMResponse = async (prompt: string) => {
                     connectorId: action.connectorId,
                     stepOrder: i + 1,
                     externalId: step.stepId,
-                    configuration: {
-                        dependencies: step.dependsOn || [],
-                        position: {
-                            x: i * 250 + 100,
-                            y: 100,
-                        },
-                        description: step.description,
-                    },
+                    dependsOn: step.dependsOn || [],
+                    description: step.description,
                 },
             });
 
             createdSteps.push({
                 id: workflowStep.id,
                 stepId: step.stepId,
-                type: step.type,
+                type: action.type,
                 actionKey: step.actionKey,
                 title: action.title,
                 description: step.description,
                 connector: action.connector.name,
-                position: { x: i * 250 + 100, y: 100 },
                 dependsOn: step.dependsOn || [],
             });
         }
@@ -192,7 +186,20 @@ const createFromLLMResponse = async (prompt: string) => {
 };
 
 const getAll = async () => {
-    const workflows = await prisma.workflow.findMany();
+    const workflows = await prisma.workflow.findMany({
+        select: {
+            id: true,
+            name: true,
+            description: true,
+            isActive: true,
+            createdAt: true,
+            updatedAt: true,
+            _count: true,
+        },
+        orderBy: {
+            createdAt: 'desc',
+        },
+    });
 
     return workflows;
 };
@@ -225,22 +232,41 @@ const getOne = async (id: string) => {
             name: true,
             description: true,
             isActive: true,
+            createdAt: true,
+            updatedAt: true,
             steps: {
                 select: {
                     id: true,
                     externalId: true,
                     stepOrder: true,
+                    description: true,
+                    dependsOn: true,
                     action: {
                         select: {
                             key: true,
                             title: true,
                             type: true,
+                            description: true,
                         },
                     },
+                    connector: {
+                        select: {
+                            name: true,
+                            key: true,
+                        },
+                    },
+                },
+                orderBy: {
+                    stepOrder: 'asc',
                 },
             },
         },
     });
+
+    if (!result) {
+        throw CustomError.notFound('Workflow not found');
+    }
+
     return result;
 };
 
